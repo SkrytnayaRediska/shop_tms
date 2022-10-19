@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Discount, Promocode, ProductItem, RegistredUser
+from .models import Category, Discount, Promocode, ProductItem, RegistredUser, Basket
 from django.contrib.auth import authenticate
 
 
@@ -81,13 +81,12 @@ class LoginSerializer(serializers.Serializer):
         password = data.get('password', None)
 
         if phone is None:
-            raise serializers.ValidationError('An phone address is required to log in.')
+            raise serializers.ValidationError('An phone number is required to log in.')
 
         if password is None:
             raise serializers.ValidationError('A password is required to log in.')
 
         user = authenticate(username=phone, password=password)
-
 
         if user is None:
             raise serializers.ValidationError('A user with this email and password was not found.')
@@ -99,3 +98,27 @@ class LoginSerializer(serializers.Serializer):
             'phone': user.phone,
             'token': user.token
         }
+
+
+class AddProductSerializer(serializers.Serializer):
+    product_id = serializers.IntegerField()
+    number_of_items = serializers.IntegerField()
+
+
+class ProductInBasketSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    number_of_items = serializers.IntegerField()
+
+
+class BasketSerializer(serializers.Serializer):
+    products = ProductInBasketSerializer(many=True)
+    result_price = serializers.SerializerMethodField()
+
+    def get_result_price(self, data):
+        result_price = 0
+
+        for item in data.get('products'):
+            result_price += item.get('price') * item.get('number_of_items')
+
+        return result_price
