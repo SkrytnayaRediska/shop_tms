@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from django.contrib import admin
-from .models import Category, Discount, ProductItem, Promocode, Basket
+from .models import Category, Discount, ProductItem, Promocode, Basket, Order
 
 
 class CategoryAdmin(admin.ModelAdmin):
@@ -30,9 +30,14 @@ class BasketAdmin(admin.ModelAdmin):
     list_select_related = ('user', 'product')
 
 
+class OrderInfoAdmin(admin.ModelAdmin):
+    list_display = [field.name for field in Order._meta.get_fields()]
+
+
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Discount, DiscountAdmin)
 admin.site.register(ProductItem, ProductItemAdmin)
 admin.site.register(Promocode, PromocodeAdmin)
 admin.site.register(Basket, BasketAdmin)
+admin.site.register(Order, OrderInfoAdmin)
 

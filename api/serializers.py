@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from .models import Category, Discount, Promocode, ProductItem, RegistredUser, Basket
+from .models import Category, Discount, Promocode, ProductItem, RegistredUser, Basket, Order
 from django.contrib.auth import authenticate
+import datetime
 
 
 class CategoriesSerializer(serializers.ModelSerializer):
@@ -119,6 +120,75 @@ class BasketSerializer(serializers.Serializer):
         result_price = 0
 
         for item in data.get('products'):
-            result_price += item.get('price') * item.get('number_of_items')
+            if item.get('discount'):
+                percent = item.get('discount_percent')
+                expire = item.get('discount_expire')
+                print(f"{percent=}, {expire=}")
+
+                delta = expire - datetime.datetime.now(datetime.timezone.utc)
+
+                if delta.days >= 0 and delta.seconds >= 0:
+                    result_price += (item.get('price') * (100 - percent) / 100) * item.get("number_of_items")
+                else:
+                    result_price += item.get('price') * item.get('number_of_items')
+
+            else:
+                result_price += item.get('price') * item.get('number_of_items')
 
         return result_price
+
+
+class CreateOrderSerializer(serializers.ModelSerializer):
+
+    def run_validation(self, data=None):
+        return data
+
+    class Meta:
+        model = Order
+        fields = '__all__'
+
+    def calculate_result_price(self, data):
+        product_items_dict = data.get('product_items')
+        product_items_ids = product_items_dict.keys()
+        product_items = ProductItem.objects.filter(id__in=product_items_ids).values('id', 'name', 'price',
+                                                                                    'discount__percent',
+                                                                                    'discount__expire',
+                                                                                    'discount__allow_to_sum_with_promo')
+        result_price = 0
+        promocode_name = self.context.get('request').data.get('promocode')
+        promocode = Promocode.objects.filter(name=promocode_name).first()
+        for item in product_items:
+            number_of_items = product_items_dict.get(str(item.get('id')))
+            discount = item.get('discount__percent')
+            price = item.get('price')
+
+            if discount:
+                date_expire = item.get('discount__expire')
+                delta = date_expire - datetime.datetime.now(datetime.timezone.utc)
+                if delta.days >= 0 and delta.seconds >= 0:
+                    if item.get('discount__allow_to_sum_with_promo') and promocode:
+                        result_price += (((price * (100 - discount) / 100) * (100 - promocode.percent) / 100) * number_of_items)
+                    else:
+                        result_price += (price * (100 - discount) / 100) * number_of_items
+                else:
+                    result_price += price * number_of_items
+            else:
+                result_price += price * number_of_items
+
+        return result_price
+
+    def get_result_number_of_items(self, data):
+        return sum(data.get('product_items').values())
+
+    def get_user(self):
+        request = self.context.get('request')
+        return request.user
+
+    def create(self, validated_data):
+        validated_data['result_price'] = self.calculate_result_price(validated_data)
+        validated_data['result_number_of_items'] = self.get_result_number_of_items(validated_data)
+        validated_data['user'] = self.get_user()
+        if validated_data.get('promocode'):
+            validated_data.pop('promocode')
+
+        return Order.objects.create(**validated_data)
