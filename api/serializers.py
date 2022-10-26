@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Discount, Promocode, ProductItem, RegistredUser, Basket, Order
+from .models import Category, Discount, Promocode, ProductItem, RegistredUser, Basket, Order, Cashback
 from django.contrib.auth import authenticate
 import datetime
 
@@ -175,6 +175,21 @@ class CreateOrderSerializer(serializers.ModelSerializer):
             else:
                 result_price += price * number_of_items
 
+        user = self.context.get('request').user
+        cashback = Cashback.objects.all().first()
+
+        use_cashback = data.get('use_cashback')
+        if use_cashback:
+            if user.cashback_points > cashback.allowed_amount_to_substract \
+                    and result_price > cashback.allowed_amount_to_substract:
+                result_price -= cashback.allowed_amount_to_substract
+            elif result_price > user.cashback_points:
+                result_price -= user.cashback_points
+
+
+        user.cashback_points += result_price * cashback.percent / 100
+        user.save()
+
         return result_price
 
     def get_result_number_of_items(self, data):
@@ -191,4 +206,10 @@ class CreateOrderSerializer(serializers.ModelSerializer):
         if validated_data.get('promocode'):
             validated_data.pop('promocode')
 
+        validated_data.pop('use_cashback')
+
         return Order.objects.create(**validated_data)
+
+
+class DeleteProductSerializer(serializers.Serializer):
+    product_item_id = serializers.IntegerField()

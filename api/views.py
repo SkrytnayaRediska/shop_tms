@@ -18,7 +18,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from .models import Category, Discount, ProductItem, Promocode, RegistredUser, Basket
 from .serializers import CategoriesSerializer, DiscountsSerializer, \
     PromocodesSerializer, ProductItemsSerializer, UserSerializer, LoginSerializer, RegistrationSerializer, \
-    AddProductSerializer, BasketSerializer, CreateOrderSerializer
+    AddProductSerializer, BasketSerializer, CreateOrderSerializer, DeleteProductSerializer
 
 
 class CategoriesView(ListAPIView):
@@ -125,6 +125,22 @@ class AddProductIntoUserBasket(APIView):
         object.save()
 
         return Response(status=200)
+
+
+class DeleteProductFromUserBasket(APIView):
+    permission_classes = (IsAuthenticated, )
+
+    def delete(self, request):
+        user = request.user
+        serializer = DeleteProductSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        product_item = get_object_or_404(ProductItem, id=serializer.data.get('product_item_id'))
+        Basket.objects.get(user=user, product=product_item).delete()
+
+        return Response(status=200)
+
+
 
 
 class BasketView(APIView):

@@ -90,7 +90,7 @@ class UserManager(BaseUserManager):
         if not password:
             raise ValueError("User must have a password")
 
-        user = self.create_user(password, phone, is_admin=True, is_staff=True, is_active=True)
+        user = self.create_user(password, email, phone, is_admin=True, is_staff=True, is_active=True)
         user.is_superuser = True
         user.is_staff = True
         user.is_active = True
@@ -170,6 +170,11 @@ class Order(models.Model):
     delivery_notif_required = models.BooleanField(default=True)
     delivery_notif_in_time = models.IntegerField(choices=NOTIF_TIME, default=1)
     delivery_notif_sent = models.BooleanField(default=False)
+
+
+class Cashback(models.Model):
+    percent = models.IntegerField()
+    allowed_amount_to_substract = models.IntegerField()
 
 
 
