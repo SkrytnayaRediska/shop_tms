@@ -64,7 +64,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         model = RegistredUser
         # Перечислить все поля, которые могут быть включены в запрос
         # или ответ, включая поля, явно указанные выше.
-        fields = ['phone', 'login', 'password', 'token']
+        fields = ['phone', 'login', 'password', 'token', 'email']
 
     def create(self, validated_data):
         # Использовать метод create_user, который мы

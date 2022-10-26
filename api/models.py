@@ -58,9 +58,10 @@ class Promocode(models.Model):
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, password, phone=None,
+    def create_user(self, password, email, phone,
                     is_admin=False, is_staff=False,
-                    is_active=True, age=18, login='', weekly_discount_notif_required=True):
+                    is_active=False, age=18, login='',
+                    weekly_discount_notif_required=True):
 
         if not phone:
             raise ValueError("User must have phone")
@@ -71,6 +72,7 @@ class UserManager(BaseUserManager):
             phone=phone
         )
         user.set_password(password)
+        user.email = email
         user.login = login
         user.age = age
         user.is_admin = is_admin
@@ -91,12 +93,14 @@ class UserManager(BaseUserManager):
         user = self.create_user(password, phone, is_admin=True, is_staff=True, is_active=True)
         user.is_superuser = True
         user.is_staff = True
+        user.is_active = True
         user.save()
         return user
 
 
 class RegistredUser(AbstractUser):
     username = None
+    email = models.EmailField(default=None)
     age = models.IntegerField()
     sex = models.CharField(choices=SEX_CHOICES, max_length=20, default='M')
     phone = models.CharField(max_length=20, unique=True)
@@ -104,7 +108,7 @@ class RegistredUser(AbstractUser):
     weekly_discount_notif_required = models.BooleanField(default=True)
     cashback_points = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
 
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
 

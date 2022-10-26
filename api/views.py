@@ -2,12 +2,19 @@
 from __future__ import unicode_literals
 
 from django.shortcuts import render, get_object_or_404, get_list_or_404
+from django.contrib.sites.shortcuts import get_current_site
+from django.conf import settings
 from rest_framework.views import APIView
 from django.db.models import F
 from rest_framework.generics import ListAPIView
 from rest_framework.viewsets import GenericViewSet
+from django.template.loader import render_to_string
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from django.core.mail import send_mail
+from django.utils.encoding import force_bytes, force_str
+from .tokens import account_activation_token
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from .models import Category, Discount, ProductItem, Promocode, RegistredUser, Basket
 from .serializers import CategoriesSerializer, DiscountsSerializer, \
     PromocodesSerializer, ProductItemsSerializer, UserSerializer, LoginSerializer, RegistrationSerializer, \
@@ -49,9 +56,39 @@ class RegistrationAPIView(APIView):
         # стандартный, и его можно часто увидеть в реальных проектах.
         serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        user = serializer.save()
+
+        current_site = get_current_site(request)
+        mail_subject = 'Activation link has been sent to your email id'
+        message = render_to_string('account_activation_email.html', {
+            'user': user,
+            'domain': current_site.domain,
+            'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+            'token': account_activation_token.make_token(user),
+        })
+        to_email = user.email
+        send_mail(
+            mail_subject, message, recipient_list=[to_email], from_email=settings.DEFAULT_FROM_EMAIL
+        )
 
         return Response(serializer.data, status=200)
+
+
+class ActivateAccountView(APIView):
+
+    def get(self, request, uidb64, token):
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = RegistredUser.objects.get(pk=uid)
+        except Exception as e:
+            user = None
+        if user is not None and account_activation_token.check_token(user, token):
+            user.is_active = True
+            user.save()
+            return Response('Thank you for your email confirmation. Now you can login your account.', status=200)
+        else:
+            return Response('Activation link is invalid!', status=403)
+
 
 
 class LoginAPIView(APIView):
