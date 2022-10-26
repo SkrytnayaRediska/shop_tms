@@ -179,7 +179,7 @@ class CreateOrderSerializer(serializers.ModelSerializer):
         cashback = Cashback.objects.all().first()
 
         use_cashback = data.get('use_cashback')
-        if use_cashback:
+        if eval(use_cashback):
             if user.cashback_points > cashback.allowed_amount_to_substract \
                     and result_price > cashback.allowed_amount_to_substract:
                 result_price -= cashback.allowed_amount_to_substract
