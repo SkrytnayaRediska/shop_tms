@@ -1,0 +1,41 @@
+[
+    {
+        "model": "api.category",
+        "pk": 1,
+        "fields": {
+            "name": "cat1",
+            "description": "sdfghjkl"
+        }
+    },
+    {
+        "model": "api.category",
+        "pk": 2,
+        "fields": {
+            "name": "cat2",
+            "description": "sdfghjkl"
+        }
+    },
+
+    {
+        "model": "api.discount",
+        "pk": 1,
+        "fields": {
+            "name": "disc1",
+            "percent": 10,
+            "allow_to_sum_with_promo": true,
+            "expire": "2023-09-09 15:00:00"
+
+        }
+    },
+    {
+        "model": "api.discount",
+        "pk": 2,
+        "fields": {
+            "name": "disc2",
+            "percent": 15,
+            "allow_to_sum_with_promo": true,
+            "expire": "2023-09-09 15:00:00"
+
+        }
+    }
+]

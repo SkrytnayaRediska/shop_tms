@@ -1,11 +1,11 @@
 from django.urls import re_path, path
-from .views import CategoriesView, DiscountsView, PromocodesView, \
-    ProductItemsView, RegistrationAPIView, LoginAPIView, AddProductIntoUserBasket, \
-    BasketView, CreateOrderView, ActivateAccountView, DeleteProductFromUserBasket
+#from .views import CategoriesView, DiscountsView, PromocodesView, \
+#    ProductItemsView, RegistrationAPIView, LoginAPIView, AddProductIntoUserBasket, \
+#    BasketView, CreateOrderView, ActivateAccountView, DeleteProductFromUserBasket
+from .views import CategoriesView, DiscountsView
 
-
-urlpatterns = [
-    re_path(r'^categories/', CategoriesView.as_view()),
+"""urlpatterns = [
+    re_path(r'^categories/', CategoriesView.as_view(), name="categories"),
     re_path(r'^discounts/', DiscountsView.as_view()),
     re_path(r'^promocodes/', PromocodesView.as_view()),
     re_path(r'^products/', ProductItemsView.as_view()),
@@ -16,6 +16,9 @@ urlpatterns = [
     re_path(r'^create-order/', CreateOrderView.as_view()),
     re_path(r'^delete-product/', DeleteProductFromUserBasket.as_view()),
     path('activate/<slug:uidb64>/<slug:token>/', ActivateAccountView.as_view(), name='activate')
+]"""
+urlpatterns = [
+    re_path(r'^categories/', CategoriesView.as_view(), name="categories"),
+    re_path(r'^discounts/', DiscountsView.as_view(), name="discounts"),
 ]
-
 

@@ -27,11 +27,19 @@ SECRET_KEY = 'wcxppqe_s_ftk!=!9=cv$)9@*&yx1-0a5@7fs^4a++-#um7nvt'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["0.0.0.0"]
+
+
+
+
+CELERY_BROKER_URL = "redis://redis:6379"
+CELERY_RESULT_BACKEND = "redis://redis:6379"
+CELERY_IMPORTS = [
+    "api.tasks"
+]
 
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -40,19 +48,20 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'api'
+    'api',
 ]
 REST_FRAMEWORK = {
     'COERCE_DECIMAL_TO_STRING': False,
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'api.backends.JWTAuthentication',
-    )
+    ),
+
 }
 
 EMAIL_HOST = 'smtp.yandex.ru'
 EMAIL_PORT = 465
-EMAIL_HOST_USER = "****@******.**"
-EMAIL_HOST_PASSWORD = "********"
+EMAIL_HOST_USER = "olga@arusnavi.ru"
+EMAIL_HOST_PASSWORD = "397ts26TRAST"
 EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True
 SERVER_EMAIL = EMAIL_HOST_USER
@@ -95,11 +104,10 @@ WSGI_APPLICATION = 'shop_tms.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'shop_tms',
-        'USER': 'postgres',
-        'PASSWORD': '1234',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
+        'NAME': 'shop',
+        'USER': 'olga',
+        'PASSWORD': '',
+        'HOST': 'db',
     }
 }
 
